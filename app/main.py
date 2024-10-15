@@ -10,7 +10,7 @@ app = FastAPI()
 version = "1.0"
 
 
-@app.get("/microservice/health")
+@app.get("/incident-query/health")
 async def health():
     return {"status": "OK Python"}
 

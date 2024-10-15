@@ -19,6 +19,6 @@ services:
       DB_PORT: 5432
       DB_NAME: postgres
     ports:
-      - "8005:8005"
+      - "8006:8006"
     depends_on:
       - postgres
