@@ -28,10 +28,10 @@ This microservice provides a simple API for [microservice].
 To run the service locally:
 
 ```
-uvicorn app.main:app --reload --port 800x
+uvicorn app.main:app --reload --port 8005
 ```
 
-The service will be available at `http://localhost:800x`.
+The service will be available at `http://localhost:8005`.
 
 ## API Endpoints
 
@@ -43,14 +43,14 @@ To build and run the Docker container:
 
 ```
 docker build -t [microservice]-service .
-docker run -p 800x:800x [microservice]-service
+docker run -p 8005:8005 [microservice]-service
 ```
 
-Make sure to expose port 800x in your Dockerfile:
+Make sure to expose port 8005 in your Dockerfile:
 
 ```dockerfile
-EXPOSE 800x
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "800x"]
+EXPOSE 8005
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8005"]
 ```
 
 ## Alembic
