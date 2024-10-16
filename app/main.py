@@ -3,10 +3,12 @@ from fastapi import FastAPI, Request, APIRouter
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
 
+from .routers import incident
 from .errors.errors import ApiError
 
 app = FastAPI()
 
+app.include_router(incident.router)
 version = "1.0"
 
 

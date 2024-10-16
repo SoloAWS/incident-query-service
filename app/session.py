@@ -8,10 +8,10 @@ class SessionConfig():
 
     def url(self):
         try:
-            db_user = os.environ['DB_USERNAME']
-            db_pass = os.environ['DB_PASSWORD']
-            db_host = os.environ['DB_HOST']
-            db_name = os.environ['DB_NAME']
+            db_user = 'postgres'
+            db_pass = 'postgres'
+            db_host = 'localhost'
+            db_name = 'postgres'
             return f'postgresql://{db_user}:{db_pass}@{db_host}:5432/{db_name}'
         except KeyError as k:
             print(f'No database environment variables found, using SQLite as fallback ({k})')
