@@ -1,4 +1,5 @@
 # app/routers/incident.py
+from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, Header
 from sqlalchemy.orm import Session
 from ..schemas.incident import (
@@ -42,3 +43,34 @@ def get_user_company_incidents(
         Incident.company_id == data.company_id
     ).order_by(Incident.creation_date.desc()).limit(20).all()
     return incidents
+
+@router.get("/all-incidents", response_model=List[IncidentResponse])
+def get_all_incidents(
+    db: Session = Depends(get_db)
+    #current_user: dict = Depends(get_current_user)
+    ):
+    # if not current_user:
+    #    raise HTTPException(status_code=401, detail="Authentication required")
+
+    # if current_user['user_type'] != 'manager':
+    #     raise HTTPException(status_code=403, detail="Not authorized to access this data")
+    
+    incidents = db.query(Incident).order_by(Incident.creation_date.desc()).all()
+    return incidents
+
+@router.get("/incident/{incident_id}", response_model=IncidentResponse)
+def get_incident_by_id(
+    incident_id: UUID,
+    db: Session = Depends(get_db)
+    #current_user: dict = Depends(get_current_user)
+    ):
+    # if not current_user:
+    #    raise HTTPException(status_code=401, detail="Authentication required")
+
+    # if current_user['user_type'] != 'manager':
+    #     raise HTTPException(status_code=403, detail="Not authorized to access this data")
+    
+    incident = db.query(Incident).filter(Incident.id == incident_id).first()
+    if not incident:
+        raise HTTPException(status_code=404, detail="Incident not found")
+    return incident
