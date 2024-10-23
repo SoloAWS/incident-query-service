@@ -32,9 +32,14 @@ class UserCompanyRequest(BaseModel):
     user_id: UUID
     company_id: UUID
 
-
-
-
-
-
+class IncidentDetailedResponse(BaseModel):
+    id: UUID
+    description: str
+    state: IncidentState
+    channel: IncidentChannel
+    priority: IncidentPriority
+    creation_date: datetime
+    user_id: UUID
+    company_id: UUID
+    manager_id: UUID
 

@@ -3,6 +3,7 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, Header
 from sqlalchemy.orm import Session
 from ..schemas.incident import (
+    IncidentDetailedResponse,
     IncidentResponse,
     UserCompanyRequest
 )
@@ -58,7 +59,7 @@ def get_all_incidents(
     incidents = db.query(Incident).order_by(Incident.creation_date.desc()).all()
     return incidents
 
-@router.get("/incident/{incident_id}", response_model=IncidentResponse)
+@router.get("/incident/{incident_id}", response_model=IncidentDetailedResponse)
 def get_incident_by_id(
     incident_id: UUID,
     db: Session = Depends(get_db)
