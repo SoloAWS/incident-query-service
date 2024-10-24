@@ -2,7 +2,7 @@
 from pydantic import BaseModel, Field
 from uuid import UUID
 from datetime import datetime
-from typing import List
+from typing import Optional
 from enum import Enum
 
 class IncidentState(str, Enum):
@@ -41,5 +41,12 @@ class IncidentDetailedResponse(BaseModel):
     creation_date: datetime
     user_id: UUID
     company_id: UUID
-    manager_id: UUID
+    manager_id: Optional[UUID] = None
+    
+    class Config:
+        from_attributes = True
+        json_encoders = {
+            UUID: str,
+            datetime: lambda v: v.isoformat()
+        }
 

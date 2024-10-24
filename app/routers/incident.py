@@ -45,7 +45,7 @@ def get_user_company_incidents(
     ).order_by(Incident.creation_date.desc()).limit(20).all()
     return incidents
 
-@router.get("/all-incidents", response_model=List[IncidentResponse])
+@router.get("/all-incidents", response_model=List[IncidentDetailedResponse])
 def get_all_incidents(
     db: Session = Depends(get_db)
     #current_user: dict = Depends(get_current_user)
