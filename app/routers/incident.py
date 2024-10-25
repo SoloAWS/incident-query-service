@@ -59,9 +59,9 @@ def get_all_incidents(
     incidents = db.query(Incident).order_by(Incident.creation_date.desc()).all()
     return incidents
 
-@router.get("/incident/{incident_id}", response_model=IncidentDetailedResponse)
+@router.get("/{incident_id}", response_model=IncidentDetailedResponse)
 def get_incident_by_id(
-    incident_id: UUID,
+    incident_id: str,
     db: Session = Depends(get_db)
     #current_user: dict = Depends(get_current_user)
     ):
