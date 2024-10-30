@@ -48,7 +48,7 @@ def test_get_user_company_incidents_success(client, db_session, user_and_company
     response = client.post(
         "/incident-query/user-company",
         json={"user_id": str(user_id), "company_id": str(company_id)},
-        headers={"token": token}
+        headers={"authorization": token}
     )
     
     assert response.status_code == 200
@@ -59,30 +59,30 @@ def test_get_user_company_incidents_success(client, db_session, user_and_company
         assert incident["state"] == IncidentState.OPEN.value
         assert "creation_date" in incident
 
-# def test_get_user_company_incidents_unauthorized(client, user_and_company):
-#     user_id, company_id = user_and_company
+def test_get_user_company_incidents_unauthorized(client, user_and_company):
+    user_id, company_id = user_and_company
     
-#     response = client.post(
-#         "/incident-query/user-company",
-#         json={"user_id": str(user_id), "company_id": str(company_id)}
-#     )
+    response = client.post(
+        "/incident-query/user-company",
+        json={"user_id": str(user_id), "company_id": str(company_id)}
+    )
     
-#     assert response.status_code == 401
-#     assert response.json()["detail"] == "Authentication required"
+    assert response.status_code == 401
+    assert response.json()["detail"] == "Authentication required"
 
-# def test_get_user_company_incidents_wrong_user(client, user_and_company):
-#     user_id, company_id = user_and_company
-#     other_user_id = uuid4()
+def test_get_user_company_incidents_wrong_user(client, user_and_company):
+    user_id, company_id = user_and_company
+    other_user_id = uuid4()
     
-#     token = create_test_token(other_user_id, "user")
-#     response = client.post(
-#         "/incident-query/user-company",
-#         json={"user_id": str(user_id), "company_id": str(company_id)},
-#         headers={"token": token}
-#     )
+    token = create_test_token(other_user_id, "user")
+    response = client.post(
+        "/incident-query/user-company",
+        json={"user_id": str(user_id), "company_id": str(company_id)},
+        headers={"authorization": token}
+    )
     
-#     assert response.status_code == 403
-#     assert response.json()["detail"] == "Not authorized to access this data"
+    assert response.status_code == 403
+    assert response.json()["detail"] == "Not authorized to access this data"
 
 def test_get_user_company_incidents_as_manager(client, db_session, user_and_company):
     user_id, company_id = user_and_company
@@ -94,7 +94,7 @@ def test_get_user_company_incidents_as_manager(client, db_session, user_and_comp
     response = client.post(
         "/incident-query/user-company",
         json={"user_id": str(user_id), "company_id": str(company_id)},
-        headers={"token": token}
+        headers={"authorization": token}
     )
     
     assert response.status_code == 200
@@ -108,7 +108,7 @@ def test_get_user_company_incidents_no_incidents(client, user_and_company):
     response = client.post(
         "/incident-query/user-company",
         json={"user_id": str(user_id), "company_id": str(company_id)},
-        headers={"token": token}
+        headers={"authorization": token}
     )
     
     assert response.status_code == 200
@@ -124,7 +124,7 @@ def test_get_user_company_incidents_limit(client, db_session, user_and_company):
     response = client.post(
         "/incident-query/user-company",
         json={"user_id": str(user_id), "company_id": str(company_id)},
-        headers={"token": token}
+        headers={"authorization": token}
     )
     
     assert response.status_code == 200
@@ -140,7 +140,7 @@ def test_get_user_company_incidents_order(client, db_session, user_and_company):
     response = client.post(
         "/incident-query/user-company",
         json={"user_id": str(user_id), "company_id": str(company_id)},
-        headers={"token": token}
+        headers={"authorization": f'Bearer {token}'}
     )
     
     assert response.status_code == 200
