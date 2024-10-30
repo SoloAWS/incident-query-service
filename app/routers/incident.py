@@ -4,10 +4,11 @@ from fastapi import APIRouter, Depends, HTTPException, Header
 from sqlalchemy.orm import Session
 from ..schemas.incident import (
     IncidentDetailedResponse,
+    IncidentDetailedWithHistoryResponse,
     IncidentResponse,
     UserCompanyRequest
 )
-from ..models.model import Incident
+from ..models.model import Incident, IncidentHistory
 from ..session import get_db
 from typing import List
 import os
@@ -59,7 +60,7 @@ def get_all_incidents(
     incidents = db.query(Incident).order_by(Incident.creation_date.desc()).all()
     return incidents
 
-@router.get("/{incident_id}", response_model=IncidentDetailedResponse)
+@router.get("/{incident_id}", response_model=IncidentDetailedWithHistoryResponse)
 def get_incident_by_id(
     incident_id: str,
     db: Session = Depends(get_db),
@@ -74,4 +75,15 @@ def get_incident_by_id(
     incident = db.query(Incident).filter(Incident.id == incident_id).first()
     if not incident:
         raise HTTPException(status_code=404, detail="Incident not found")
-    return incident
+
+    history = (
+        db.query(IncidentHistory)
+        .filter(IncidentHistory.incident_id == incident_id)
+        .order_by(IncidentHistory.created_at.asc())
+        .all()
+    )
+    
+    response = incident.__dict__
+    response['history'] = history
+    
+    return response
