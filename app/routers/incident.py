@@ -1,4 +1,3 @@
-# app/routers/incident.py
 from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, Header
 from sqlalchemy.orm import Session
@@ -45,6 +44,32 @@ def get_user_company_incidents(
         Incident.user_id == data.user_id,
         Incident.company_id == data.company_id
     ).order_by(Incident.creation_date.desc()).limit(20).all()
+    return incidents
+
+@router.get("/company-incidents", response_model=List[IncidentDetailedResponse])
+def get_company_incidents(
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user)
+):
+    """Get incidents for authenticated company users"""
+    if not current_user:
+        raise HTTPException(status_code=401, detail="Authentication required")
+
+    if current_user.get('user_type') != 'company':
+        raise HTTPException(
+            status_code=403,
+            detail="Only company users can access this endpoint"
+        )
+    
+    company_id = current_user['sub']
+    
+    incidents = (
+        db.query(Incident)
+        .filter(Incident.company_id == company_id)
+        .order_by(Incident.creation_date.desc())
+        .limit(10)
+        .all()
+    )
     return incidents
 
 @router.get("/all-incidents", response_model=List[IncidentDetailedResponse])
