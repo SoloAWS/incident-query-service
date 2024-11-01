@@ -46,6 +46,48 @@ def get_user_company_incidents(
     ).order_by(Incident.creation_date.desc()).limit(20).all()
     return incidents
 
+@router.get("/dashboard-stats")
+def get_dashboard_stats(
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user)
+):
+    """Get dashboard statistics for total calls and open tickets"""
+    if not current_user:
+        raise HTTPException(status_code=401, detail="Authentication required")
+
+    if current_user.get('user_type') != 'company':
+        raise HTTPException(
+            status_code=403,
+            detail="Only company users can access this endpoint"
+        )
+    
+    company_id = current_user['sub']
+    
+    # Count total phone calls
+    total_calls = (
+        db.query(Incident)
+        .filter(
+            Incident.company_id == company_id,
+            Incident.channel == 'phone'
+        )
+        .count()
+    )
+    
+    # Count open tickets
+    open_tickets = (
+        db.query(Incident)
+        .filter(
+            Incident.company_id == company_id,
+            Incident.state == 'open'
+        )
+        .count()
+    )
+    
+    return {
+        "total_calls": total_calls,
+        "open_tickets": open_tickets
+    }
+
 @router.get("/company-incidents", response_model=List[IncidentDetailedResponse])
 def get_company_incidents(
     db: Session = Depends(get_db),
