@@ -68,3 +68,13 @@ class IncidentDetailedWithHistoryResponse(IncidentDetailedResponse):
         json_encoders = {
             datetime: lambda v: v.isoformat()
         }
+        
+class IncidentUserResponse(BaseModel):
+    creation_date: datetime
+    state: IncidentState
+    priority: IncidentPriority
+    description: str
+    company_id: str
+
+class IncidentsUserListResponse(BaseModel):
+    incidents: List[IncidentUserResponse]

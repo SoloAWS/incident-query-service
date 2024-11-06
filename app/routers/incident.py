@@ -5,7 +5,9 @@ from ..schemas.incident import (
     IncidentDetailedResponse,
     IncidentDetailedWithHistoryResponse,
     IncidentResponse,
-    UserCompanyRequest
+    UserCompanyRequest,
+    IncidentsUserListResponse,
+    IncidentUserResponse
 )
 from ..models.model import Incident, IncidentHistory
 from ..session import get_db
@@ -213,3 +215,36 @@ def get_incident_by_id(
     response['history'] = history
     
     return response
+
+@router.get("/incidents-user", response_model=IncidentsUserListResponse)
+async def get_user_incidents_summary(
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user)
+):  
+    if not current_user:
+      raise HTTPException(status_code=401, detail="Authentication required")
+    
+    if current_user['user_type'] != 'user':
+        raise HTTPException(status_code=403, detail="Not authorized to access this data")
+    
+    user_id = current_user['sub']
+    
+    incidents = (
+        db.query(Incident)
+        .filter(Incident.user_id == user_id)
+        .order_by(Incident.creation_date.desc())
+        .all()
+    )
+    
+    incident_responses = [
+        IncidentUserResponse(
+            creation_date=incident.creation_date,
+            state=incident.state,
+            priority=incident.priority,
+            description=incident.description,
+            company_id=str(incident.company_id)
+        )
+        for incident in incidents
+    ]
+    
+    return IncidentsUserListResponse(incidents=incident_responses)
