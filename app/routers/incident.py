@@ -1,3 +1,4 @@
+from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, Header
 from sqlalchemy.orm import Session
 from sqlalchemy import func
@@ -7,7 +8,7 @@ from ..schemas.incident import (
     IncidentResponse,
     UserCompanyRequest,
     IncidentsUserListResponse,
-    IncidentUserResponse
+    IncidentUserResponse,
 )
 from ..models.model import Incident, IncidentHistory
 from ..session import get_db
@@ -188,6 +189,39 @@ def get_all_incidents(
     incidents = db.query(Incident).order_by(Incident.creation_date.desc()).all()
     return incidents
 
+@router.get("/incidents-user", response_model=IncidentsUserListResponse)
+async def get_user_incidents_summary(
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user)
+):  
+    if not current_user:
+      raise HTTPException(status_code=401, detail="Authentication required")
+    
+    if current_user['user_type'] != 'user':
+        raise HTTPException(status_code=403, detail="Not authorized to access this data")
+    
+    user_id = UUID(current_user['sub'])
+    
+    incidents = (
+        db.query(Incident)
+        .filter(Incident.user_id == user_id)
+        .order_by(Incident.creation_date.desc())
+        .all()
+    )
+    
+    incident_responses = [
+        IncidentUserResponse(
+            creation_date=incident.creation_date,
+            state=incident.state,
+            priority=incident.priority,
+            description=incident.description,
+            company_id=str(incident.company_id)
+        )
+        for incident in incidents
+    ]
+    
+    return IncidentsUserListResponse(incidents=incident_responses)
+
 @router.get("/{incident_id}", response_model=IncidentDetailedWithHistoryResponse)
 def get_incident_by_id(
     incident_id: str,
@@ -215,36 +249,3 @@ def get_incident_by_id(
     response['history'] = history
     
     return response
-
-@router.get("/incidents-user", response_model=IncidentsUserListResponse)
-async def get_user_incidents_summary(
-    db: Session = Depends(get_db),
-    current_user: dict = Depends(get_current_user)
-):  
-    if not current_user:
-      raise HTTPException(status_code=401, detail="Authentication required")
-    
-    if current_user['user_type'] != 'user':
-        raise HTTPException(status_code=403, detail="Not authorized to access this data")
-    
-    user_id = current_user['sub']
-    
-    incidents = (
-        db.query(Incident)
-        .filter(Incident.user_id == user_id)
-        .order_by(Incident.creation_date.desc())
-        .all()
-    )
-    
-    incident_responses = [
-        IncidentUserResponse(
-            creation_date=incident.creation_date,
-            state=incident.state,
-            priority=incident.priority,
-            description=incident.description,
-            company_id=str(incident.company_id)
-        )
-        for incident in incidents
-    ]
-    
-    return IncidentsUserListResponse(incidents=incident_responses)
