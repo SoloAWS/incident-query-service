@@ -2,8 +2,8 @@ import os
 from fastapi import FastAPI, Request, APIRouter
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
-
-from .routers import incident
+from fastapi.middleware.cors import CORSMiddleware
+from .routers import incident, manager_router
 from .errors.errors import ApiError
 
 app = FastAPI()
@@ -13,7 +13,17 @@ async def health():
     return {"status": "OK Python"}
 
 
+# Add CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 app.include_router(incident.router)
+app.include_router(manager_router.router)
 version = "1.0"
 
 
