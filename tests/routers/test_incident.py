@@ -39,6 +39,10 @@ def create_test_incidents(db_session, user_id: UUID, company_id: UUID, count: in
 def user_and_company():
     return uuid4(), uuid4()
 
+@pytest.fixture
+def user_uid_val():
+    return uuid4()
+
 def test_get_user_company_incidents_success(client, db_session, user_and_company):
     user_id, company_id = user_and_company
     
@@ -147,3 +151,40 @@ def test_get_user_company_incidents_order(client, db_session, user_and_company):
     data = response.json()
     creation_dates = [incident["creation_date"] for incident in data]
     assert creation_dates == sorted(creation_dates, reverse=True)  # Check descending order
+
+def test_get_user_incidents_unauthorized(client):
+    response = client.get("/incident-query/incidents-user")
+    
+    assert response.status_code == 401
+    assert response.json()["detail"] == "Authentication required"
+
+def test_get_user_incidents_wrong_user_type(client, user_and_company):
+    user_id, _ = user_and_company
+    
+    # Create token with wrong user_type (company instead of user)
+    token = create_test_token(user_id, "company")
+    response = client.get(
+        "/incident-query/incidents-user",
+        headers={"authorization": f'Bearer {token}'}
+    )
+    
+    assert response.status_code == 403
+    assert response.json()["detail"] == "Not authorized to access this data"
+    
+def test_get_user_incidents_no_incidents(client, user_and_company):
+    user_id, _ = user_and_company
+    
+    token = create_test_token(user_id, "user")
+    payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+    print(payload['user_type'])
+    response = client.get(
+        "/incident-query/incidents-user",
+        headers={"authorization": f'Bearer {token}'}
+    )
+    
+    print( response.json())
+    assert response.status_code == 200
+    data = response.json()
+    assert "incidents" in data
+    assert len(data["incidents"]) == 0
+
